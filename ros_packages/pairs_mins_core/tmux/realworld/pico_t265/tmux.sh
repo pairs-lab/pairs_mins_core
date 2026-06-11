@@ -8,7 +8,7 @@
 # Short-Description: start the uav
 ### END INIT INFO
 if [ "$(id -u)" == "0" ]; then
-  exec sudo -u mrs "$0" "$@"
+  exec sudo -u pairs "$0" "$@"
 fi
 
 source $HOME/.bashrc
@@ -37,15 +37,15 @@ pre_input=""
 input=(
   'Rosbag' 'waitForOffboard; ./record.sh
 '
-  'Sensors' 'waitForTime; roslaunch mrs_uav_deployment sensors.launch
+  'Sensors' 'waitForTime; roslaunch pairs_uav_deployment sensors.launch
 '
-  'HwApi' 'waitForTime; roslaunch mrs_uav_px4_api api.launch
+  'HwApi' 'waitForTime; roslaunch pairs_uav_px4_api api.launch
 '
-  'Status' 'waitForHw; roslaunch mrs_uav_status status.launch
+  'Status' 'waitForHw; roslaunch pairs_uav_status status.launch
 '
-  'Core' 'waitForTime; roslaunch mrs_uav_core core.launch platform_config:=`rospack find mrs_uav_deployment`/config/mrs_uav_system/$UAV_TYPE.yaml world_config:=./config/world_config.yaml custom_config:=./config/mrs_uav_managers.yaml network_config:=./config/network_config.yaml
+  'Core' 'waitForTime; roslaunch pairs_uav_core core.launch platform_config:=`rospack find pairs_uav_deployment`/config/pairs_uav_system/$UAV_TYPE.yaml world_config:=./config/world_config.yaml custom_config:=./config/pairs_uav_managers.yaml network_config:=./config/network_config.yaml
 '
-  'Mins' 'waitForHw; roslaunch mrs_mins_core pico_t265.launch
+  'Mins' 'waitForHw; roslaunch pairs_mins_core pico_t265.launch
 '
   't265' 'waitForTime; roslaunch realsense t265.launch serial_no:=845412111752
 '
@@ -71,7 +71,12 @@ attach=true
 ### DO NOT MODIFY BELOW ###
 ###########################
 
-export TMUX_BIN="/usr/bin/tmux -L mrs -f /etc/ctu-mrs/tmux.conf"
+# use the system-wide PAIRS tmux config if it is installed
+if [ -f /etc/ctu-pairs/tmux.conf ]; then
+  export TMUX_BIN="/usr/bin/tmux -L pairs -f /etc/ctu-pairs/tmux.conf"
+else
+  export TMUX_BIN="/usr/bin/tmux -L pairs"
+fi
 
 # find the session
 FOUND=$( $TMUX_BIN ls | grep $SESSION_NAME )
@@ -142,7 +147,7 @@ done
 # send commands
 for ((i=0; i < ${#cmds[*]}; i++));
 do
-  $TMUX_BIN send-keys -t $SESSION_NAME:$(($i+1)) "cd $SCRIPTPATH;${pre_input};${cmds[$i]}"
+  $TMUX_BIN send-keys -t $SESSION_NAME:$(($i+1)) "cd $SCRIPTPATH;${pre_input};${cmds[$i]}"
 done
 
 # identify the index of the init window
@@ -162,10 +167,10 @@ if $attach; then
   then
     $TMUX_BIN -2 attach-session -t $SESSION_NAME
   else
-    tmux detach-client -E "tmux -L mrs a -t $SESSION_NAME"
+    tmux detach-client -E "tmux -L pairs a -t $SESSION_NAME"
   fi
 else
   echo "The session was started"
   echo "You can later attach by calling:"
-  echo "  tmux -L mrs a -t $SESSION_NAME"
+  echo "  tmux -L pairs a -t $SESSION_NAME"
 fi
