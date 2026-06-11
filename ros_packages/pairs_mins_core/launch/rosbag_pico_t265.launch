@@ -1,0 +1,126 @@
+<launch>
+
+  <arg name="UAV_NAME" default="uav46" />
+  <arg name="RUN_TYPE" default="realworld" />
+
+  <arg name="config" default="rosbag/pico_t265" />
+
+  <arg name="node_prefix" default="rosbag_"/>
+
+  <arg name="t265_base_frame" default="$(arg UAV_NAME)/t265/link" />
+  <arg name="t265_fcu_frame" default="$(arg UAV_NAME)/t265/fcu" />
+  <!-- <arg name="mins_imu_frame" default="$(arg UAV_NAME)imu" /> -->
+  <arg name="fcu_frame" default="$(arg UAV_NAME)/fcu" />
+
+
+  <group ns="$(arg UAV_NAME)" >
+
+<!--//{ run mins -->
+    <node name="mins_subscribe" pkg="mins" type="subscribe" output="screen" >
+    <!-- <node name="mins_subscribe" pkg="mins" type="subscribe" output="screen" launch-prefix="debug_roslaunch" > -->
+      <param name="config_path"       type="str"  value="$(find pairs_mins_core)/config/$(arg config)/config.yaml" />
+
+      <!-- namespace -->
+      <param name="uav_name" type="str" value="$(arg UAV_NAME)" />
+
+      <!-- tf frames -->
+      <param name="frame/fcu" type="str" value="$(arg UAV_NAME)/fcu" />
+      <param name="frame/global" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_global" />
+      <param name="frame/map" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_map" />
+      <param name="frame/imu" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_imu" />
+      <param name="frame/cam" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_cam" />
+      <param name="frame/lidar" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_lidar" />
+      <param name="frame/gps" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_gps" />
+      <param name="frame/wheel" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_wheel" />
+      <param name="frame/vicon" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_vicon" />
+      <param name="frame/clone_enabled" type="bool" value="false" />
+      <param name="frame/clone" type="str" value="$(arg UAV_NAME)/$(arg node_prefix)mins_c" />
+
+      <remap from="/mins/cam/msckf" to="$(arg node_prefix)mins/cam/msckf" />
+      <remap from="/mins/cam/num_msckf" to="$(arg node_prefix)mins/cam/num_msckf" />
+      <remap from="/mins/cam/slam" to="$(arg node_prefix)mins/cam/slam" />
+      <remap from="/mins/cam/num_slam" to="$(arg node_prefix)mins/cam/num_slam" />
+      <remap from="/mins/cam/timing" to="$(arg node_prefix)mins/cam/timing" />
+      <remap from="/mins/cam0/track_img" to="$(arg node_prefix)mins/cam0/track_img" />
+      <remap from="/mins/cam1/track_img" to="$(arg node_prefix)mins/cam1/track_img" />
+      <remap from="/mins/cam/num_tracks" to="$(arg node_prefix)mins/cam/num_tracks" />
+      <remap from="/mins/imu/odom" to="$(arg node_prefix)mins/imu/odom" />
+      <remap from="/mins/imu/path" to="$(arg node_prefix)mins/imu/path" />
+      <remap from="/mins/imu/timing" to="$(arg node_prefix)mins/imu/timing" />
+      <remap from="/mins/lidar/timing" to="$(arg node_prefix)mins/lidar/timing" />
+      <remap from="/mins/lidar0/map" to="$(arg node_prefix)mins/lidar0/map" />
+      <remap from="/mins/lidar0/points" to="$(arg node_prefix)mins/lidar0/points" />
+      <remap from="/mins/lidar0/map_input_points" to="$(arg node_prefix)mins/lidar0/map_input_points" />
+
+    </node>
+<!--//}-->
+
+<!--<!-1-//{ publish static tfs -1->-->
+<!--    <!-1- tf for transforming t265 imu to fcu frame (not connected to main tf tree) -1->-->
+<!--    <node pkg="tf2_ros" type="static_transform_publisher" name="tf_t265_to_fcu" args="-0.055 0.0 -0.065 0.0 0.0 0.0 $(arg t265_base_frame) $(arg t265_fcu_frame)" />--> 
+
+<!--    <!-1- tf for connecting mins tf tree with the main tf tree -1->-->
+<!--    <!-1- <node pkg="tf2_ros" type="static_transform_publisher" name="tf_fcu_to_mins_imu" args="0.0 0.0 0.0 0.0 0.0 0.0 $(arg fcu_frame) $(arg mins_imu_frame)" /> -1->-->
+<!--<!-1-//}-1->-->
+
+<!--<!-1-//{ transforms imu measurements to fcu frame -1->-->
+<!--    <node name="imu_transformer" pkg="imu_transformer" type="imu_transformer_node" output="screen" >-->
+<!--      <param name="target_frame" type="str" value="$(arg t265_fcu_frame)" />-->
+
+<!--        <remap from="imu_in/data" to="vio_imu/imu_filtered_t265" />-->
+<!--        <remap from="imu_out/data" to="vio_imu/imu_filtered_fcu" />-->
+<!--    </node>-->
+<!--<!-1-//}-1->-->
+  
+<!--//{ decompress compressed images to image raw from rosbag -->
+    <node name="republish_cam0" type="republish" pkg="image_transport" output="screen" args="compressed in:=/$(arg UAV_NAME)/t265/fisheye1/image_raw raw out:=/$(arg UAV_NAME)/t265/fisheye1/image_raw" />
+    <node name="republish_cam1" type="republish" pkg="image_transport" output="screen" args="compressed in:=/$(arg UAV_NAME)/t265/fisheye2/image_raw raw out:=/$(arg UAV_NAME)/t265/fisheye2/image_raw" />
+<!--//}-->
+
+  </group>
+
+<!--//{ filter depth and generate point cloud-->
+  <include file="$(find pairs_pcl_tools)/launch/pcl_filter.launch">
+
+    <arg name="UAV_NAME" value="$(arg UAV_NAME)" />
+    <arg name="custom_config" value="$(find pairs_mins_core)/config/$(arg config)/pcl_depth_filter_config.yaml" />
+
+  </include>
+<!--//}-->
+
+<!--//{ aggregate sensors' point clouds into a single one in fcu frame -->
+  <include file="$(find pico_merger)/launch/pico_merger.launch">
+
+    <arg name="UAV_NAME" value="$(arg UAV_NAME)" />
+    <arg name="RUN_TYPE" value="$(arg RUN_TYPE)" />
+    <arg name="custom_config" value="$(find pairs_mins_core)/config/$(arg config)/pico_merger.yaml" />
+
+  </include>
+<!--//}-->
+
+<!--<!-1-//{ filter imu -1->-->
+<!--    <include file="$(find pairs_mins_core)/launch/filter_t265.launch">-->
+
+<!--      <arg name="UAV_NAME" value="$(arg UAV_NAME)" />-->
+
+<!--    </include>-->
+<!--<!-1-//}-1->-->
+
+<!--//{ publish mask -->
+  <include file="$(find uas_mapping_core)/launch/publish_mask.launch">
+
+    <arg name="UAV_NAME" value="$(arg UAV_NAME)" />
+
+  </include>
+<!--//}-->
+
+<!--//{ undistort -->
+  <include file="$(find uas_mapping_core)/launch/pico_undistort.launch">
+
+    <arg name="UAV_NAME" value="$(arg UAV_NAME)" />
+
+  </include>
+<!--//}-->
+
+</launch>
+

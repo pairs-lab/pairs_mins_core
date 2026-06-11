@@ -1,0 +1,38 @@
+location: .gitman
+sources:
+  - repo: https://github.com/ctu-mrs/mins
+    name: mins
+    rev: master
+    type: git
+    params:
+    sparse_paths:
+      -
+    links:
+      - source: ''
+        target: ros_packages/mins
+    scripts:
+      - git submodule update --init --recursive
+  - repo: https://github.com/ctu-mrs/pairs_mins_estimator_plugin
+    name: pairs_mins_estimator_plugin
+    rev: master
+    type: git
+    params:
+    sparse_paths:
+      -
+    links:
+      - source: ''
+        target: ros_packages/pairs_mins_estimator_plugin
+    scripts:
+      - git submodule update --init --recursive
+  - repo: https://github.com/ctu-mrs/pairs_open_vins_core
+    name: pairs_open_vins_core
+    rev: master
+    type: git
+    params:
+    sparse_paths:
+      -
+    links:
+      - source: ''
+        target: ros_packages/pairs_open_vins_core
+    scripts:
+      - git submodule update --init --recursive

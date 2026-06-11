@@ -1,0 +1,66 @@
+%YAML:1.0 # need to specify the file type at the top!
+
+cam:
+  enabled: true
+  time_analysis: false
+  num_opencv_threads: 4 # -1: auto, 0-1: serial, >1: number of threads
+  max_n: 2
+  use_stereo: true
+  stereo_pair: [0,1]
+  do_calib_ext: true
+  do_calib_int: true
+  do_calib_dt: true
+  n_pts: 200
+  fast: 15
+  grid_x: 10
+  grid_y: 10
+  min_px_dist: 15
+  knn: 0.70
+  downsample: false
+  histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
+  max_slam: 50
+  max_msckf: 50 # if there are more slam points than max_msckf, new ones are not initialized
+  feat_rep: "GLOBAL_3D"
+  init_cov_dt: 1e-4
+  init_cov_ex_o: 1e-4
+  init_cov_ex_p: 1e-3
+  init_cov_in_k: 1e-0
+  init_cov_in_c: 1e-0
+  init_cov_in_r: 1e-5
+  sigma_px: 10
+  chi2_mult: 10
+
+  # ==================================================================
+  # ==================================================================
+cam0:
+  timeoffset: 0.016
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
+    - [0.0, 0.0, 1.0, 0.0]
+    - [-1.0, 0.0, 0.0, 0.06 ]
+    - [0.0, -1.0, 0.0, 0.0]
+    - [0.0, 0.0, 0.0, 1.0]
+  cam_overlaps: [1]
+  camera_model: pinhole
+  distortion_coeffs: [-0.09416355205581818, 0.42904516777461643, -0.7554269922513681, 0.4536580174830988] # kalibr calibrated
+  distortion_model: equidistant
+  intrinsics: [574.4097394313972, 577.8929758951325, 623.6256853290217, 373.9525731488615] # kalibr calibrated
+  resolution: [1280, 720]
+  topic: "oak/left/image_raw"
+  use_mask: false
+  mask: ""
+cam1:
+  timeoffset: 0.016
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
+    - [ 0.001,-0.001, 1.000, 0.0]
+    - [ -1.000, 0.001, 0.001,0.021]
+    - [0.000, -1.000,-0.001, 0.0]
+    - [ 0.000, 0.000, 0.000, 1.000]
+  cam_overlaps: [0]
+  camera_model: pinhole
+  distortion_coeffs: [-0.15288238444471455, 0.7226692628667927, -1.291965278142678, 0.7737769051633601] # kalibr calibrated
+  distortion_model: equidistant
+  intrinsics: [571.5791233327163, 575.4060678811733, 642.276476551025, 374.6546592722994] # kalibr calibrated
+  resolution: [1280, 720]
+  topic: "oak/right/image_raw"
+  use_mask: false
+  mask: ""

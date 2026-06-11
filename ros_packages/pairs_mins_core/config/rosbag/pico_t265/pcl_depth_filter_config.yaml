@@ -1,0 +1,201 @@
+scope_timer:
+  enable: false
+  log_filename: ""
+
+lidar3d:
+
+  name:      "empty"
+  frequency: 10       # [Hz]
+  vfov:      90       # [deg]
+
+  republish: true
+  keep_organized: true
+
+  clip:
+    range:
+      use: false
+      min: 0.7  # [m]
+      max: 40.0 # [m]
+    intensity:
+      use: false
+      threshold: 35
+      range: 5.0
+    reflectivity:
+      use: false
+      threshold: 25
+      range: 5.0
+
+  cropbox:
+    use: false
+    crop_inside: true # if true, points inside the box will be cropped, otherwise points outside will be cropped
+    frame_id: "fcu"
+    min: [-0.5, -0.5, -0.5]
+    max: [0.5, 0.5, 0.5]
+
+  ground_removal:
+    use: false
+    range:
+      use: true
+    static_frame_id: gps_origin
+    max_precrop_height: 2.0
+    ransac:
+      max_inlier_distance: 0.5
+    offset: 1.0
+    publish_plane_marker: true
+
+  downsampling:
+    dynamic_row_selection: false
+    row_step: 1
+    col_step: 1
+
+rplidar:
+  republish: false
+  voxel_resolution: 0.05
+
+
+depth:
+  camera_names: ["picoflexx_front", "picoflexx_left", "picoflexx_right", "picoflexx_top"]
+
+  picoflexx_front:
+
+    frequency: 10 # [Hz]
+    vfov: 180     # [deg]
+    keep_ordered: false
+
+    topic:
+      depth_in: "picoflexx_front/image_depth_rect"
+      depth_camera_info_in: "picoflexx_front/camera_info"
+      points_out: "picoflexx_front/points_filtered"
+      points_over_max_range_out: "picoflexx_front/points_over_max_range" # used if non-empty and range_clip used
+
+    mask:
+      enabled: true
+      topic:
+        mask_in: "picoflexx_front_mask/image_raw"
+        depth_out: "picoflexx_front/masked_depth"
+
+    intensity:
+      enabled: true
+      sync_exact: true
+      topic_in: "picoflexx_front/image_mono8"
+      filter:
+        enabled: true
+        threshold: 10
+        topic_out: "picoflexx_front/points_low_intensity"
+
+    depth_filter:
+      range_clip:
+        min: 0.35
+        max: 5.0 # used if >0, maintains ordering if keep_ordered=true
+      downsample:
+        step:
+          row: 1 # used if >1, maintains ordering if keep_ordered=true
+          col: 1 # used if >1, maintains ordering if keep_ordered=true
+
+  picoflexx_left:
+
+    frequency: 10 # [Hz]
+    vfov: 180     # [deg]
+    keep_ordered: false
+
+    topic:
+      depth_in: "picoflexx_left/image_depth_rect"
+      depth_camera_info_in: "picoflexx_left/camera_info"
+      points_out: "picoflexx_left/points_filtered"
+      points_over_max_range_out: "picoflexx_left/points_over_max_range" # used if non-empty and range_clip used
+
+    mask:
+      enabled: true
+      topic:
+        mask_in: "picoflexx_left_mask/image_raw"
+        depth_out: "picoflexx_left/masked_depth"
+
+    intensity:
+      enabled: true
+      sync_exact: true
+      topic_in: "picoflexx_left/image_mono8"
+      filter:
+        enabled: true
+        threshold: 10
+        topic_out: "picoflexx_left/points_low_intensity"
+
+    depth_filter:
+      range_clip:
+        min: 0.35
+        max: 5.0 # used if >0, maintains ordering if keep_ordered=true
+      downsample:
+        step:
+          row: 1 # used if >1, maintains ordering if keep_ordered=true
+          col: 1 # used if >1, maintains ordering if keep_ordered=true
+
+  picoflexx_right:
+
+    frequency: 10 # [Hz]
+    vfov: 180     # [deg]
+    keep_ordered: false
+
+    topic:
+      depth_in: "picoflexx_right/image_depth_rect"
+      depth_camera_info_in: "picoflexx_right/camera_info"
+      points_out: "picoflexx_right/points_filtered"
+      points_over_max_range_out: "picoflexx_right/points_over_max_range" # used if non-empty and range_clip used
+
+    mask:
+      enabled: true
+      topic:
+        mask_in: "picoflexx_right_mask/image_raw"
+        depth_out: "picoflexx_right/masked_depth"
+
+    intensity:
+      enabled: true
+      sync_exact: true
+      topic_in: "picoflexx_right/image_mono8"
+      filter:
+        enabled: true
+        threshold: 10
+        topic_out: "picoflexx_right/points_low_intensity"
+
+    depth_filter:
+      range_clip:
+        min: 0.35
+        max: 5.0 # used if >0, maintains ordering if keep_ordered=true
+      downsample:
+        step:
+          row: 1 # used if >1, maintains ordering if keep_ordered=true
+          col: 1 # used if >1, maintains ordering if keep_ordered=true
+
+  picoflexx_top:
+
+    frequency: 10 # [Hz]
+    vfov: 180     # [deg]
+    keep_ordered: false
+
+    topic:
+      depth_in: "picoflexx_top/image_depth_rect"
+      depth_camera_info_in: "picoflexx_top/camera_info"
+      points_out: "picoflexx_top/points_filtered"
+      points_over_max_range_out: "picoflexx_top/points_over_max_range" # used if non-empty and range_clip used
+
+    mask:
+      enabled: false
+      topic:
+        mask_in: "picoflexx_top_mask/image_raw"
+        depth_out: "picoflexx_top/masked_depth"
+
+    intensity:
+      enabled: true
+      sync_exact: true
+      topic_in: "picoflexx_top/image_mono8"
+      filter:
+        enabled: true
+        threshold: 10
+        topic_out: "picoflexx_top/points_low_intensity"
+
+    depth_filter:
+      range_clip:
+        min: 0.35
+        max: 5.0 # used if >0, maintains ordering if keep_ordered=true
+      downsample:
+        step:
+          row: 1 # used if >1, maintains ordering if keep_ordered=true
+          col: 1 # used if >1, maintains ordering if keep_ordered=true

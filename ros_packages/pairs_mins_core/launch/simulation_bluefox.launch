@@ -1,0 +1,90 @@
+<launch>
+
+  <arg name="UAV_NAME" default="uav1" />
+  <arg name="RUN_TYPE" default="simulation" />
+
+  <arg name="config" default="simulation/bluefox" />
+  <arg name="config_path" default="$(find pairs_mins_core)/config/$(arg config)/config.yaml" />
+
+  <arg name="node_prefix" default=""/>
+
+  <arg name="t265_base_frame" default="$(arg UAV_NAME)/t265/link" />
+  <arg name="fcu_frame" default="$(arg UAV_NAME)/fcu" />
+
+
+  <group ns="$(arg UAV_NAME)" >
+
+<!--//{ run mins -->
+    <node name="mins_subscribe" pkg="mins" type="subscribe" output="screen" >
+    <!-- <node name="mins_subscribe" pkg="mins" type="subscribe" output="screen" launch-prefix="debug_roslaunch" > -->
+      <param name="config_path"       type="str"  value="$(arg config_path)" />
+
+      <!-- namespace -->
+      <param name="uav_name" type="str" value="$(arg UAV_NAME)" />
+
+      <!-- tf frames -->
+      <param name="frame/fcu" type="str" value="$(arg UAV_NAME)/fcu" />
+      <param name="frame/global" type="str" value="$(arg UAV_NAME)/mins_global" />
+      <param name="frame/map" type="str" value="$(arg UAV_NAME)/min_map" />
+      <param name="frame/imu" type="str" value="$(arg UAV_NAME)/mins_imu" />
+      <param name="frame/cam" type="str" value="$(arg UAV_NAME)/mins_cam" />
+      <param name="frame/lidar" type="str" value="$(arg UAV_NAME)/mins_lidar" />
+      <param name="frame/gps" type="str" value="$(arg UAV_NAME)/mins_gps" />
+      <param name="frame/wheel" type="str" value="$(arg UAV_NAME)/mins_wheel" />
+      <param name="frame/vicon" type="str" value="$(arg UAV_NAME)/mins_vicon" />
+      <param name="frame/clone_enabled" type="bool" value="false" />
+      <param name="frame/clone" type="str" value="$(arg UAV_NAME)/mins_c" />
+
+        <remap from="/mins/cam/msckf" to="mins/cam/msckf" />
+        <remap from="/mins/cam/slam" to="mins/cam/slam" />
+        <remap from="/mins/cam0/track_img" to="mins/cam0/track_img" />
+        <remap from="/mins/cam1/track_img" to="mins/cam1/track_img" />
+        <remap from="/mins/imu/odom" to="mins/imu/odom" />
+        <remap from="/mins/imu/path" to="mins/imu/path" />
+        <remap from="/mins/lidar0/map" to="mins/lidar0/map" />
+        <remap from="/mins/lidar0/points" to="mins/lidar0/points" />
+
+    </node>
+<!--//}-->
+
+<!--//{ publish static tfs -->
+    <!-- tf for transforming t265 imu to fcu frame (not connected to main tf tree) -->
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="tf_t265_to_fcu" args="-0.055 0.0 -0.065 0.0 0.0 0.0 $(arg t265_base_frame) $(arg t265_fcu_frame)" /> --> 
+
+    <!-- tf for connecting mins tf tree with the main tf tree -->
+    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="tf_fcu_to_mins_imu" args="0.0 0.0 0.0 0.0 0.0 0.0 $(arg fcu_frame) $(arg mins_imu_frame)" /> -->
+<!--//}-->
+
+<!--//{ transforms imu measurements to fcu frame -->
+    <node name="imu_transformer" pkg="imu_transformer" type="imu_transformer_node" output="screen" >
+      <param name="target_frame" type="str" value="$(arg fcu_frame)" />
+
+        <remap from="imu_in/data" to="vio/imu" />
+        <remap from="imu_out/data" to="vio/imu_fcu" />
+    </node>
+<!--//}-->
+  
+  </group>
+
+<!--//{ filter depth and generate point cloud-->
+  <!-- <include file="$(find pairs_pcl_tools)/launch/pcl_filter.launch"> -->
+
+  <!--   <arg name="UAV_NAME" value="$(arg UAV_NAME)" /> -->
+  <!--   <arg name="custom_config" value="$(find pairs_mins_core)/config/$(arg config)/pcl_depth_filter_config.yaml" /> -->
+
+  <!-- </include> -->
+<!--//}-->
+
+<!--//{ aggregate sensors' point clouds into a single one in fcu frame -->
+  <!-- <include file="$(find mins)/launch/mrs/point_cloud_manager.launch"> -->
+
+  <!--   <arg name="UAV_NAME" value="$(arg UAV_NAME)" /> -->
+  <!--   <arg name="RUN_TYPE" value="$(arg RUN_TYPE)" /> -->
+  <!--   <arg name="custom_config" value="$(find pairs_mins_core)/config/$(arg config)/point_cloud_manager.yaml" /> -->
+
+  <!-- </include> -->
+<!--//}-->
+
+
+</launch>
+

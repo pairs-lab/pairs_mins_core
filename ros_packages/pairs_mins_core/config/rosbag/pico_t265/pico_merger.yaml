@@ -1,0 +1,37 @@
+tf_buffer_duration: 10.0
+
+inputs: ["pico_front", "pico_left", "pico_right", "pico_back"]
+
+pico_front:
+  topic: "picoflexx_front/points_filtered"
+  desired_rate: 10.0 # [Hz]
+
+pico_left:
+  topic: "picoflexx_left/points_filtered"
+  desired_rate: 10.0 # [Hz]
+
+pico_right:
+  topic: "picoflexx_right/points_filtered"
+  desired_rate: 10.0 # [Hz]
+
+pico_back:
+  topic: "picoflexx_back/points_filtered"
+  desired_rate: 10.0 # [Hz]
+
+# applied to the merged cloud
+cloud_filter:
+  scope_timer:
+    enabled: false
+
+  sequence: ["voxel_grid", "NormS"] # sequence of filters to be applied (in this order) | example: ["voxel_grid", "NormS"]
+
+  voxel_grid:        # uniform sampling
+    resolution: 0.20 # (m) | voxel size
+
+  NormS:                   # Rusinkiewicz and Levoy, Efficient Variants of the ICP Algorithm, 2001
+    count: 700            # <0, max(unsigned int)) | number of points to sample
+    resolution: !degrees 2 # (rad)
+
+  CovS:                 # Gelfand et. al, Geometrically stable sampling for the ICP algorithm, 2003
+    count: 1000          # <0, max(unsigned int)) | number of points to sample
+    torque_norm: "Lavg" # {L1, Lavg}             | method of torque normalization
