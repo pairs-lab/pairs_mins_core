@@ -1,6 +1,6 @@
 location: .gitman
 sources:
-  - repo: https://github.com/ctu-mrs/mins
+  - repo: https://github.com/pairs-lab/mins
     name: mins
     rev: master
     type: git
@@ -12,7 +12,7 @@ sources:
         target: ros_packages/mins
     scripts:
       - git submodule update --init --recursive
-  - repo: https://github.com/ctu-mrs/pairs_mins_estimator_plugin
+  - repo: https://github.com/pairs-lab/pairs_mins_estimator_plugin
     name: pairs_mins_estimator_plugin
     rev: master
     type: git
@@ -24,7 +24,7 @@ sources:
         target: ros_packages/pairs_mins_estimator_plugin
     scripts:
       - git submodule update --init --recursive
-  - repo: https://github.com/ctu-mrs/pairs_open_vins_core
+  - repo: https://github.com/pairs-lab/pairs_open_vins_core
     name: pairs_open_vins_core
     rev: master
     type: git
